@@ -47,3 +47,49 @@ Bean: 在软件开发中bean时一个通用的术语，通常指的是一个被�
 
 ## 2024-01-11
 
+使用阿里云进行redis的配置，配置多次出错原因为ECS和RDS MySQL里面的白名单没有配置好（目前是添加了公网和私网的IP地址）
+同事已配置好WAF和Feign
+接下来的任务是完成目前系统功能的梳理和文档的撰写
+
+## 2024-01-12
+
+redis已在测试环境中配置好，目前根据阿里云的测试用例来看，redis可能配置成功，但是缓存效果不明显，需要进一步测试。后续可能根据情况配置到生产环境中。
+
+
+redis如何在springboot中使用：
+1. 在pom.xml中添加redis依赖
+2. 配置redis连接信息： 在application.properties或applicaiton.yml中添加redis连接信息
+```shell
+spring.redis.host=localhost
+spring.redis.port=6379
+```
+
+3. 启用缓存： 在springboot应用的主类上添加@EnableCaching注解
+```Java
+@SpringBootApplication
+@EnableCaching
+public class YourApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(YourApplication.class, args);
+    }
+}
+```
+
+4. 使用缓存：在服务类中，使用@Cacheable注解来标记哪些需要缓存的方法
+```Java
+@Service
+public class EnterpriseService {
+
+    @Cacheable(value = "enterprises", key = "#industry + #region + #name")
+    public List<Enterprise> findEnterprises(String industry, String region, String name) {
+        // 数据库查询逻辑
+    }
+
+    @Cacheable(value = "enterpriseDetails", key = "#id")
+    public Enterprise findEnterpriseDetails(String id) {
+        // 数据库查询逻辑
+    }
+}
+```
+
+5. 清除缓存：在服务类中，使用@CacheEvict注解来标记哪些需要清除缓存的方法。根据条件设置清除条件。
